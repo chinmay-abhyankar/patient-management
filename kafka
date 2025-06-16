@@ -1,0 +1,29 @@
+#navigate to kafka
+docker exec -it kafka bash
+
+#navigate to
+/opt/bitnami/kafka/bin
+
+#create a topic
+bin/kafka-topics.sh --create --topic patient --bootstrap-server localhost:9094
+
+#describe topic
+bin/kafka-topics.sh --describe --topic patient --bootstrap-server localhost:9094
+
+#to list all topics
+bin/kafka-topics.sh --list --bootstrap-server localhost:9094
+
+kafka-console-consumer.sh \
+  --bootstrap-server localhost:9094 \
+  --topic your-topic-name \
+  --from-beginning \
+  --property print.key=true \
+  --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \
+  --property value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer \
+  --property value.converter=org.apache.kafka.connect.json.JsonConverter \
+  --property value.converter.schemas.enable=false \
+  --property value.converter.base64.encoded=true
+
+
+#to create consumer from cli
+bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic patient --from-beginning --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer --property value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer --property value.converter=org.apache.kafka.connect.json.JsonConverter --property value.converter.schemas.enable=false --property value.converter.base64.encoded=true

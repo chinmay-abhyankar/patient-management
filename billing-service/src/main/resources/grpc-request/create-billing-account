@@ -1,0 +1,10 @@
+
+-- this will list all services
+docker run fullstorydev/grpcurl -plaintext host.docker.internal:9001 list
+
+-- this will return correct response
+docker run fullstorydev/grpcurl -plaintext -d '{
+  "patientId": "123",
+  "name": "John Doe",
+  "email": "john.doe@example.com"
+}' host.docker.internal:9001 BillingService/CreateBillingAccount
