@@ -10,6 +10,9 @@ import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repository.PatientRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -63,6 +66,8 @@ public class PatientService {
      *                          details to be saved
      * @return a PatientResponseDTO representing the newly created patient
      */
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class,
+            isolation = Isolation.READ_COMMITTED,noRollbackFor = PatientNotFoundException.class)
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO){
         boolean isPresent = patientRepository.existsByEmail(patientRequestDTO.getEmail());
 
