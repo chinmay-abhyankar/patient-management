@@ -20,7 +20,7 @@ public class KafkaProducer {
      * This instance is final, ensuring it is immutable after initialization.
      */
     private final KafkaTemplate<String, byte[]> kafkaTemplate;
-    @Value("${kafka.topic.patient.create:patient-created}")
+    @Value("${kafka.topic.patient.create:patient}")
     String patientEventsTopic;
 
     public KafkaProducer(KafkaTemplate<String, byte[]> kafkaTemplate) {

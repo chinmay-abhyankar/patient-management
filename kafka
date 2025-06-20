@@ -28,5 +28,7 @@ kafka-console-consumer.sh \
 #to create consumer from cli
 bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic patient --from-beginning --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer --property value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer --property value.converter=org.apache.kafka.connect.json.JsonConverter --property value.converter.schemas.enable=false --property value.converter.base64.encoded=true
 
-bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic patient-created --from-beginning --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer --property value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer --property value.converter=org.apache.kafka.connect.json.JsonConverter --property value.converter.schemas.enable=false --property value.converter.base64.encoded=true
+bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic patient-created --group analytics-service --from-beginning --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer --property value.deserializer=org.apache.kafka.common.serialization.ByteArrayDeserializer --property value.converter=org.apache.kafka.connect.json.JsonConverter --property value.converter.schemas.enable=false --property value.converter.base64.encoded=true
 
+kafka-consumer-groups.sh --bootstrap-server kafka:9092 --describe --group analytics-service
+kafka-topics.sh --bootstrap-server kafka:9092 --describe --topic patient-created
