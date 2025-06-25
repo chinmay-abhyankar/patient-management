@@ -1,5 +1,32 @@
 package com.pm.patientservice.dto;
 
+/**
+ * Data Transfer Object (DTO) for sending patient information in responses.
+ * <p>
+ * This class encapsulates the patient data returned to the client, such as
+ * patient ID, name, email, address, and date of birth.
+ * </p>
+ *
+ * <ul>
+ *   <li><b>id</b>: Unique identifier of the patient.</li>
+ *   <li><b>name</b>: Patient's full name.</li>
+ *   <li><b>email</b>: Patient's email address.</li>
+ *   <li><b>address</b>: Patient's address.</li>
+ *   <li><b>dateOfBirth</b>: Patient's date of birth.</li>
+ * </ul>
+ *
+ * <p>
+ * Example usage:
+ * <pre>{@code
+ * PatientResponseDTO dto = new PatientResponseDTO();
+ * dto.setId("123");
+ * dto.setName("Jane Doe");
+ * dto.setEmail("jane.doe@example.com");
+ * dto.setAddress("456 Main St");
+ * dto.setDateOfBirth("1992-05-10");
+ * }</pre>
+ * </p>
+ */
 public class PatientResponseDTO {
     private String id;
     private String name;
@@ -25,7 +52,7 @@ public class PatientResponseDTO {
     public void setEmail(String email) {
         this.email = email;
     }
-   public String getAddress() {
+    public String getAddress() {
         return address;
     }
     public void setAddress(String address) {
@@ -37,5 +64,4 @@ public class PatientResponseDTO {
     public void setDateOfBirth(String dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
-
 }
