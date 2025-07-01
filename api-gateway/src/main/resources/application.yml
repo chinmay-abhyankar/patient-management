@@ -1,6 +1,10 @@
 server:
   port: 4004
 
+logging:
+  filter:
+    enabled: true
+
 spring:
   application:
     name: api-gateway
@@ -10,12 +14,21 @@ spring:
       server:
         webflux:
           routes:
+            - id: auth-service-route
+              uri: http://auth-service:4005
+              predicates:
+                  - Path=/api/auth/**
+              filters:
+                  - StripPrefix=2
+
+
             - id: patient-service-route
               uri: http://patient-service:4000
               predicates:
                 - Path=/api/patients/**
               filters:
                 - StripPrefix=1
+                - JwtValidation
 
             - id: api-docs-patient-route
               uri: http://patient-service:4000

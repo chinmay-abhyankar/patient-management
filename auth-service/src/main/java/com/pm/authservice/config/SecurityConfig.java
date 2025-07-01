@@ -10,6 +10,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests(
@@ -19,6 +21,10 @@ public class SecurityConfig {
         return http.build();
     }
 
+  /**
+   * Creates and returns a BCryptPasswordEncoder instance for password hashing
+   * @return PasswordEncoder implementation using BCrypt hashing algorithm
+   */
     @Bean
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
