@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    container_name: api-gateway
+    image: api-gateway:latest
+    ports:
+      - "4004:4004"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:4005
+    networks:
+      - internal
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: analytics-service/Dockerfile
+    container_name: analytics-service
+    image: analytics-service:latest
+    ports:
+      - "4002:4002"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - internal
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: auth-service/Dockerfile # Assuming you have a Dockerfile for auth-service
+    container_name: auth-service
+    image: auth-service:latest
+    ports:
+      - "4005:4005" # Expose the port auth-service listens on
+    networks:
+      - internal
+
+  auth-service-db:
+    image: postgres:latest
+    container_name: auth-service-db
+    environment:
+      POSTGRES_DB: auth-service-db
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: admin
+    ports:
+      - "5001:5432"
+    volumes:
+      - D:/learning/patient-management/db_volume/auth-service:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: billing-service/Dockerfile
+    container_name: billing-service
+    image: billing-service:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-service-db:5432/db
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_SQL_INIT_MODE: always
+    ports:
+      - "4001:4001"
+      - "9001:9001"
+    networks:
+      - internal
+
+  kafka:
+    image: bitnami/kafka:latest # Consider using a specific version like bitnami/kafka:3.7.0
+    container_name: kafka
+    environment:
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+    ports:
+      - "9092:9092" # For internal communication within Docker Compose, and potentially from host
+      - "9094:9094" # For external communication from the host machine via localhost
+    networks:
+      - internal
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest # Consider using a specific version, e.g., provectuslabs/kafka-ui:0.7.0
+    container_name: kafka-ui
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true" # Note: Environment variables in YAML are strings, so "true"
+      KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_NAME: MyLocalKafkaCluster
+    ports:
+      - "8080:8080" # Map host port 8080 to container port 8080 for accessing the UI
+    networks:
+      - internal
+    depends_on:
+      - kafka # Ensures the Kafka service starts before Kafka-UI
+
+
+  patient-service:
+    build:
+      context: .
+      dockerfile: patient-service/Dockerfile
+    container_name: patient-service
+    image: patient-service:latest
+    environment:
+      BILLING_SERVICE_ADDRESS: billing-service
+      BILLING_SERVICE_GRPC_PORT: 9001 # This is the GRPC port, not necessarily the HTTP one
+      KAFKA_TOPIC_PATIENT_CREATE: patient
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-service-db:5432/db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_SQL_INIT_MODE: always
+    networks:
+      - internal
+    depends_on:
+      - patient-service-db # Patient service depends on its database
+      - kafka              # Patient service depends on Kafka
+      - billing-service    # Patient service depends on billing-service for gRPC calls
+
+  patient-service-db:
+    image: postgres:latest # Consider using a specific version, e.g., postgres:13-alpine
+    container_name: patient-service-db
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: admin
+    ports:
+      - "5000:5432" # Map host port 5000 to container port 5432
+    volumes:
+      - D:/learning/patient-management/db_volume/patient-service:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  pgadmin:
+    image: dpage/pgadmin4:9.2
+    container_name: pgadmin_container
+    environment:
+      PGADMIN_CONFIG_SERVER_MODE: "False" # Value needs to be a string in YAML
+      PGADMIN_DEFAULT_EMAIL: chinmay.abhyankar@liferay.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "5050:80" # Map host port 5050 to container port 80
+    volumes:
+      - D:/learning/patient-management/db_volume/pgadmin:/var/lib/pgadmin # Persist pgAdmin data
+    networks:
+      - internal
+    restart: unless-stopped # Automatically restart unless manually stopped
+    depends_on:
+      - auth-service-db # Ensure auth-service-db (or any DB you want to manage) starts first
+
+networks:
+  internal:
