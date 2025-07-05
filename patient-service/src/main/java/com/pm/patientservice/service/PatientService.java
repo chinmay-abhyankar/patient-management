@@ -1,5 +1,6 @@
 package com.pm.patientservice.service;
 
+import com.pm.patientservice.dto.PagedPatientResponseDto;
 import com.pm.patientservice.dto.PatientRequestDTO;
 import com.pm.patientservice.dto.PatientResponseDTO;
 import com.pm.patientservice.exception.EmailAlreadyExistsException;
@@ -9,6 +10,10 @@ import com.pm.patientservice.kafka.KafkaProducer;
 import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repository.PatientRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -46,8 +51,9 @@ public class PatientService {
 
     /**
      * Retrieves a list of all patients from the repository and maps them to PatientResponseDTO objects.
+     * This method fetches all patient records without pagination or filtering.
      *
-     * @return a list of PatientResponseDTO objects representing the patients in the system.
+     * @return List<PatientResponseDTO> - a list of patient response DTOs containing patient details
      */
     public List<PatientResponseDTO> getPatients(){
         List<Patient> patients = patientRepository.findAll();
@@ -55,6 +61,48 @@ public class PatientService {
         return patients.stream()
                 .map(PatientMapper::toPatientResponseDTO)
                 .toList();
+    }
+
+    /**
+     * Retrieves a paginated list of patients based on the specified parameters.
+     *
+     * @param page        the page number to retrieve (zero-based)
+     * @param size        the number of items per page
+     * @param sort        the sort direction ("asc" or "desc")
+     * @param sortField   the field to sort by
+     * @param searchField the field to search in
+     * @param searchValue the value to search for
+     * @return a PagedPatientResponseDto containing the paginated list of patients
+     */
+    public PagedPatientResponseDto getPatients(Integer page, Integer size, String sort, String sortField, String searchField, String searchValue) {
+        Pageable pageable = PageRequest.of(page-1, size,
+                sort.equalsIgnoreCase("desc")                        ? Sort.by(sortField).descending()
+                        : Sort.by(sortField).ascending());
+
+        Page<Patient> patientPage;
+
+        if (searchValue == null || searchValue.isBlank()) {
+            patientPage = patientRepository.findAll(pageable);
+        } else {
+            patientPage = switch (searchField.toLowerCase()) {
+                case "name" -> patientRepository.findByNameContainingIgnoreCase(searchValue, pageable);
+                case "address" -> patientRepository.findByAddressContainingIgnoreCase(searchValue, pageable);
+                case "email" -> patientRepository.findByEmailContainingIgnoreCase(searchValue, pageable);
+                default -> Page.empty(pageable);
+            };
+        }
+
+        List<PatientResponseDTO> patientResponseDTOS = patientPage.getContent()
+                .stream().map(PatientMapper::toPatientResponseDTO).toList();
+
+
+        return PagedPatientResponseDto.builder()
+                .patients(patientResponseDTOS)
+                .totalPages(patientPage.getTotalPages())
+                .totalElements((int)patientPage.getTotalElements())
+                .pageNumber(patientPage.getNumber()+1)
+                .pageSize(patientPage.getSize())
+                .build();
     }
 
     /**
