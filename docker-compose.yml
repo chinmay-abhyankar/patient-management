@@ -126,7 +126,7 @@ services:
       - billing-service    # Patient service depends on billing-service for gRPC calls
 
   patient-service-db:
-    image: postgres:latest # Consider using a specific version, e.g., postgres:13-alpine
+    image: postgres:13-alpine # Consider using a specific version, e.g., postgres:13-alpine
     container_name: patient-service-db
     environment:
       POSTGRES_DB: db
