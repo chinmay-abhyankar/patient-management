@@ -11,6 +11,25 @@ public class PagedPatientResponseDto {
     private final int pageNumber;
     private final int pageSize;
 
+    public List<PatientResponseDTO> getPatients() {
+        return patients;
+    }
+
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    public int getTotalElements() {
+        return totalElements;
+    }
+
+    public int getPageNumber() {
+        return pageNumber;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
 
     private PagedPatientResponseDto(List<PatientResponseDTO> patients, int totalPages, int totalElements, int pageNumber, int pageSize) {
         this.patients = patients;
