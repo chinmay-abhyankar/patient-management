@@ -1,10 +1,13 @@
 package com.pm.patientservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pm.patientservice.dto.PatientResponseDTO;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PagedPatientResponseDto {
+public class PagedPatientResponseDto implements Serializable {
     private final List<PatientResponseDTO> patients;
     private final int totalPages;
     private final int totalElements;
@@ -31,7 +34,13 @@ public class PagedPatientResponseDto {
         return pageSize;
     }
 
-    private PagedPatientResponseDto(List<PatientResponseDTO> patients, int totalPages, int totalElements, int pageNumber, int pageSize) {
+    @JsonCreator
+    private PagedPatientResponseDto(
+            @JsonProperty("patients") List<PatientResponseDTO> patients,
+            @JsonProperty("totalPages") int totalPages,
+            @JsonProperty("totalElements") int totalElements,
+            @JsonProperty("pageNumber") int pageNumber,
+            @JsonProperty("pageSize") int pageSize) {
         this.patients = patients;
         this.totalPages = totalPages;
         this.totalElements = totalElements;
