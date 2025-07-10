@@ -12,6 +12,8 @@ import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repository.PatientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -86,11 +88,11 @@ public class PatientService {
     public PagedPatientResponseDto getPatients(Integer page, Integer size, String sort, String sortField, String searchField, String searchValue) {
         log.info("{REDIS} Cache miss - fetching from DB ");
 
-        try{
+/*        try{
             Thread.sleep(2000);
         }catch (InterruptedException e){
             log.error(e.getMessage());
-        }
+        }*/
 
         Pageable pageable = PageRequest.of(page - 1, size,
                 sort.equalsIgnoreCase("desc") ? Sort.by(sortField).descending()
@@ -133,6 +135,7 @@ public class PatientService {
      */
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class,
             isolation = Isolation.READ_COMMITTED,noRollbackFor = PatientNotFoundException.class)
+    @CacheEvict(value = "patients", allEntries = true) // Evict all entries from "patients" cache
     public PatientResponseDTO createPatient(PatientRequestDTO patientRequestDTO){
         boolean isPresent = patientRepository.existsByEmail(patientRequestDTO.getEmail());
 
@@ -151,6 +154,18 @@ public class PatientService {
         return PatientMapper.toPatientResponseDTO(patient);
     }
 
+    /**
+     * Updates an existing patient record.
+     * The result of this method will update the corresponding entry in the "patientById" cache.
+     * It also evicts all entries from the "patients" cache (paginated list).
+     *
+     * @param id                the ID of the patient to update
+     * @param patientRequestDTO the data transfer object with updated patient details
+     * @return a PatientResponseDTO representing the updated patient
+     */
+    @Transactional
+    @CacheEvict(value = "patients", allEntries = true) // Evict all entries from "patients" cache (paginated list)
+    @CachePut(value = "patientById", key = "#id") // Update the specific entry in "patientById" cache
     public PatientResponseDTO updatePatient(UUID id, PatientRequestDTO patientRequestDTO){
         Patient patient = patientRepository.findById(id).orElseThrow(
                 () -> new PatientNotFoundException("Patient with id " + id + " not found")
@@ -162,10 +177,37 @@ public class PatientService {
             throw new EmailAlreadyExistsException("Patient with this email exist : " + patientRequestDTO.getEmail() + " choose different email");
         }
 
-        return  PatientMapper.toPatientResponseDTO(
-                PatientMapper.updatePatientEntity(patient, patientRequestDTO));
+        Patient updatedPatient = PatientMapper.updatePatientEntity(patient, patientRequestDTO);
+        updatedPatient= patientRepository.save(updatedPatient);
+
+        return  PatientMapper.toPatientResponseDTO(updatedPatient);
     }
 
+    /**
+     * Retrieves a single patient by ID.
+     * The result of this method is cached.
+     *
+     * @param id the ID of the patient to retrieve
+     * @return a PatientResponseDTO representing the patient
+     * @throws PatientNotFoundException if the patient with the given ID is not found
+     */
+    @Cacheable(value = "patientById", key = "#id")
+    public PatientResponseDTO getPatientById(UUID id) {
+        log.info("{REDIS} Cache miss for single patient - fetching from DB for ID: {}", id);
+        Patient patient = patientRepository.findById(id).orElseThrow(
+                () -> new PatientNotFoundException("Patient with id " + id + " not found")
+        );
+        return PatientMapper.toPatientResponseDTO(patient);
+    }
+
+    /**
+     * Deletes a patient record from the system.
+     * It evicts the specific entry from "patientById" cache and all entries from "patients" cache.
+     *
+     * @param id the ID of the patient to delete
+     */
+    @Transactional
+    @CacheEvict(value = {"patients", "patientById"}, allEntries = true, key = "#id") // Evict from both caches
     public void deletePatient(UUID id){
         Patient patient = patientRepository.findById(id).orElseThrow(
                 () -> new PatientNotFoundException("Patient with id " + id + " not found")

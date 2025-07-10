@@ -19,6 +19,18 @@
               <option name="value" value="patient" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
+              <option name="name" value="SPRING_CACHE_TYPE" />
+              <option name="value" value="redis" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="SPRING_DATA_REDIS_HOST" />
+              <option name="value" value="redis" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="SPRING_DATA_REDIS_PORT" />
+              <option name="value" value="6379" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
               <option name="name" value="SPRING_DATASOURCE_PASSWORD" />
               <option name="value" value="password" />
             </DockerEnvVarImpl>

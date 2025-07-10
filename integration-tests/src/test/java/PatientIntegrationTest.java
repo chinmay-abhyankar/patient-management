@@ -1,9 +1,11 @@
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PatientIntegrationTest {
   @BeforeAll
@@ -24,6 +26,42 @@ public class PatientIntegrationTest {
         .body("patients", notNullValue());
   }
 
+
+  @Test
+  // This test method verifies the rate limiting functionality of the API
+  // It sends multiple requests in quick succession to trigger the rate limit
+  public void shouldReturn429AfterLimitExceeded() throws InterruptedException {
+    // Get authentication token
+    String token = getToken();
+    // Set total number of requests to make
+    int total = 10;
+    // Counter for number of rate limited responses received
+    int tooManyRequest = 0;
+
+    // Loop to send multiple requests
+    for(int i=0;i<= total;i++){
+      // Send GET request to patients endpoint with auth token
+      Response response = given()
+              .header("Authorization", "Bearer " + token)
+              .when()
+              .get("/api/patients");
+
+      // Log request number and response status
+      System.out.printf("Request %d -> Status : %d%n",i,response.statusCode());
+
+      // Increment counter if rate limit response (429) received
+      if (response.statusCode() == 429) {
+        tooManyRequest++;
+      }
+
+      // Add delay between requests
+      Thread.sleep(100);
+    }
+
+    // Verify that at least one request was rate limited
+    assertTrue(tooManyRequest >= 1,"Expected 1 request to be rate limited ");
+
+  }
 
 
   private static String getToken() {

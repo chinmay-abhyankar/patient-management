@@ -1,0 +1,8 @@
+docker exec -it redis redis-cli
+
+KEYS *
+KEYS patient*
+
+##To get a specific key's value:
+
+ GET "patients::1-10-asc-name"

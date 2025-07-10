@@ -57,7 +57,7 @@ public class RedisCacheConfig {
         // Creates the Redis cache configuration:
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 // Sets entries to expire after 10 minutes
-                .entryTtl(Duration.ofMinutes(10))
+                .entryTtl(Duration.ofMinutes(60))
                 // Prevents caching of null values
                 .disableCachingNullValues()
                 // Configures how cache keys are serialized - using simple string serialization
