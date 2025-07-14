@@ -2,6 +2,9 @@ docker ps
 
 docker exec -it <container> bash
 
+
+ psql -U admin -d postgres
+
  psql -U admin -d db
 
   \dt;

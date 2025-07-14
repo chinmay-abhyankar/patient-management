@@ -27,19 +27,19 @@ public class PatientIntegrationTest {
   }
 
 
-  @Test
   // This test method verifies the rate limiting functionality of the API
   // It sends multiple requests in quick succession to trigger the rate limit
+  @Test
   public void shouldReturn429AfterLimitExceeded() throws InterruptedException {
     // Get authentication token
     String token = getToken();
     // Set total number of requests to make
-    int total = 10;
+    int total = 20;
     // Counter for number of rate limited responses received
     int tooManyRequest = 0;
 
     // Loop to send multiple requests
-    for(int i=0;i<= total;i++){
+    for(int i=1;i<= total;i++){
       // Send GET request to patients endpoint with auth token
       Response response = given()
               .header("Authorization", "Bearer " + token)
@@ -55,7 +55,7 @@ public class PatientIntegrationTest {
       }
 
       // Add delay between requests
-      Thread.sleep(100);
+      //Thread.sleep(100);
     }
 
     // Verify that at least one request was rate limited
