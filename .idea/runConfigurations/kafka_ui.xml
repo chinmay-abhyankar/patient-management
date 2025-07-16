@@ -24,15 +24,13 @@
           <list>
             <DockerPortBindingImpl>
               <option name="containerPort" value="8080" />
-              <option name="hostPort" value="8080" />
+              <option name="hostPort" value="8081" />
             </DockerPortBindingImpl>
           </list>
         </option>
         <option name="commandLineOptions" value="--network internal" />
       </settings>
     </deployment>
-    <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="kafka" run_configuration_type="docker-deploy" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>

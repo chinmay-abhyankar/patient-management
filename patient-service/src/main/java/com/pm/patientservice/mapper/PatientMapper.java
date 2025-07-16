@@ -3,9 +3,13 @@ package com.pm.patientservice.mapper;
 import com.pm.patientservice.dto.PatientRequestDTO;
 import com.pm.patientservice.dto.PatientResponseDTO;
 import com.pm.patientservice.model.Patient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -19,6 +23,7 @@ public class PatientMapper {
 
     private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final Logger log = LoggerFactory.getLogger(PatientMapper.class);
 
     public static PatientResponseDTO toPatientResponseDTO(Patient patient){
         PatientResponseDTO patientResponseDTO = new PatientResponseDTO();
@@ -50,6 +55,7 @@ public class PatientMapper {
             validateDateTime(registerDate);
             patient.setRegisteredDate(registerDate);
         }catch (DateTimeParseException e){
+
             throw new IllegalArgumentException("Invalid format for register date . Please use "+DATE_TIME_FORMATTER+" format ");
         }
 
@@ -57,6 +63,7 @@ public class PatientMapper {
         patient.setName(patientRequestDTO.getName());
         try {
             LocalDate dob = LocalDate.parse(patientRequestDTO.getDateOfBirth());
+            log.info("parsed date of birth : {} ",dob);
             validateDate(dob);
             patient.setDateOfBirth(dob);
         } catch (DateTimeParseException e) {
@@ -86,18 +93,20 @@ public class PatientMapper {
 
         if (date.isBefore(minDate) || date.isAfter(maxDate)) {
             throw new IllegalArgumentException(
-                    "Date of birth must be between 1950-01-01 and " + DATE_FORMATTER.format(maxDate)
+                    "Date of birth must be between " + DATE_FORMATTER.format(minDate) +
+                            " and " + DATE_FORMATTER.format(maxDate)
             );
         }
     }
 
     private static void validateDateTime(LocalDateTime date) {
         LocalDateTime minDate = LocalDateTime.of(1900, 1, 1,0,0,0);
-        LocalDateTime maxDate = LocalDateTime.now();
+        LocalDateTime maxDate = LocalDateTime.now(Clock.system(ZoneId.systemDefault()));
 
         if (date.isBefore(minDate) || date.isAfter(maxDate)) {
             throw new IllegalArgumentException(
-                    "Date of birth must be between 1950-01-01 and " + DATE_TIME_FORMATTER.format(maxDate)
+                    "Registration date must be between " + DATE_TIME_FORMATTER.format(minDate) +
+                            " and " + DATE_TIME_FORMATTER.format(maxDate)
             );
         }
     }

@@ -8,7 +8,7 @@
           <list>
             <DockerEnvVarImpl>
               <option name="name" value=" SPRING_DATASOURCE_URL" />
-              <option name="value" value="jdbc:postgresql://patient-service-db:5432/db" />
+              <option name="value" value="jdbc:postgresql://billing-service-db:5432/billing-service-db" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="SPRING_DATASOURCE_PASSWORD" />
@@ -25,6 +25,10 @@
             <DockerEnvVarImpl>
               <option name="name" value="SPRING_SQL_INIT_MODE" />
               <option name="value" value="always" />
+            </DockerEnvVarImpl>
+            <DockerEnvVarImpl>
+              <option name="name" value="SPRING_KAFKA_BOOTSTRAP_SERVERS" />
+              <option name="value" value="kafka:9092" />
             </DockerEnvVarImpl>
           </list>
         </option>

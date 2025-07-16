@@ -4,6 +4,9 @@ import billing.BillingRequest;
 import billing.BillingResponse;
 import billing.BillingServiceGrpc;
 import com.pm.patientservice.exception.BillingServiceException;
+import com.pm.patientservice.kafka.KafkaProducer;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -23,9 +26,12 @@ public class BillingServiceGrpcClient {
 
     private final ManagedChannel channel;
 
+    private  final KafkaProducer kafkaProducer;
+
    public BillingServiceGrpcClient(
            @Value("${billing.service.address:localhost}") String serverAddress,
-           @Value("${billing.service.grpc.port:9001}") int serverPort
+           @Value("${billing.service.grpc.port:9001}") int serverPort,
+           KafkaProducer kafkaProducer
    ){
         log.info("Connecting to billing service at {}:{}", serverAddress, serverPort);
 
@@ -34,8 +40,23 @@ public class BillingServiceGrpcClient {
                .build();
 
        blockingStub = BillingServiceGrpc.newBlockingStub(channel);
+
+       this.kafkaProducer = kafkaProducer;
    }
 
+   public BillingResponse billingFallback(String patientId, String name, String email,Throwable throwable){
+       log.warn("[CIRCUIT BREAKER]: Billing service is unavailable . " +
+               "Triggered fallback : {}",throwable.getMessage());
+       kafkaProducer.sendBillingAccountEvent(patientId,name,email);
+
+       return BillingResponse.newBuilder()
+               .setAccountId("")
+               .setStatus("PENDING")
+               .build();
+   }
+
+   @CircuitBreaker(name = "billingService",fallbackMethod = "billingFallback")
+   @Retry(name="billingRetry")
    public BillingResponse createBillingAccount(String patientId, String name, String email){
        BillingRequest billingRequest = BillingRequest.newBuilder()
                .setPatientId(patientId)
