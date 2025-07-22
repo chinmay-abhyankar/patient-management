@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="LocalStack" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="21" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="PATH" value="PATH=C:\Program Files\Common Files\Oracle\Java\javapath\;C:\WINDOWS\system32\;C:\WINDOWS\;C:\WINDOWS\System32\Wbem\;C:\WINDOWS\System32\WindowsPowerShell\v1.0\\;C:\WINDOWS\System32\OpenSSH\\;D:\Git\cmd\;C:\Program Files\Docker\Docker\resources\bin\;D:\aws\AWSCLIV2\\;C:\Users\Admin\AppData\Local\Microsoft\WindowsApps\;C:\Program Files\Docker\Docker\resources\bin\;D:\Microsoft VS Code\bin\;D:\node\; " />
+      <env name="APPDATA" value="C:\Users\Admin\AppData\Roaming" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.pm.stack.LocalStack" />
+    <module name="infrastructure" />
+    <shortenClasspath name="ARGS_FILE" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/infrastructure" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
